@@ -1,73 +1,167 @@
-Build Challenge — PHP / Laravel Developer
-Thanks for applying. This is a short build challenge. A senior Laravel developer using AI tooling should finish it in about 45 minutes.
+Note: Here is plublic link of the chat https://claude.ai/share/983e20e8-4629-42d4-aaff-05ec008db664  , also below same chap copied.
 
-You are encouraged to use Claude Code / Cursor — that is part of what we are evaluating. The one rule: you must commit your AI conversation (see step 4).
+I am working on a Laravel build challenge. Follow the requirements EXACTLY because automated Pest tests will validate the implementation.
+## Stack Requirements
+* PHP 8.3+
+* Laravel 11
+* Livewire 3
+* Volt (single-file components)
+* Pest
+* MySQL
+Do NOT change framework versions.
+Do NOT modify existing tests.
+## Challenge Requirements
+Build a task management feature.
+### Database
+Create a migration for a tasks table with:
+* id
+* title (string)
+* completed (boolean, default false)
+* created_at
+* updated_at
+### Model
+Create:
+app/Models/Task.php
+Requirements:
+* Eloquent model
+* Mass assignable:
+  * title
+  * completed
+### Volt Component
+Create a Volt single-file component:
+resources/views/livewire/tasks.blade.php
+Requirements:
+#### Public Property
+php
+public string $title = '';
 
-Stack (required)
-PHP 8.3+
-Laravel 11
-Livewire 3
-Volt (single-file components)
-Pest (tests are already written for you)
-MySQL
-These are already installed in this template. Do not change versions.
+#### Method: addTask()
+Must:
+1. Validate:
+php
+'title' => 'required|string|max:255'
 
-The task
-Build a single Volt single-file component that manages a task list, backed by a MySQL table through Eloquent.
+2. Create task via Eloquent
+3. Reset $title
+Example behavior:
+php
+Task::create([
+    'title' => $this->title,
+]);
 
-It must:
+Then:
+php
+$this->reset('title');
 
-List all tasks.
-Create a task from a title input. An empty title must be rejected with a validation error and must not be saved.
-Toggle a task between complete and incomplete.
-Keep it simple and clean. We are reading your code, not grading visual design.
+#### Method: toggle($id)
+Must:
+1. Find task by id
+2. Flip completed value
+3. Save
+Example behavior:
+php
+$task->completed = ! $task->completed;
+$task->save();
 
-The contract (build to this exactly — the tests depend on it)
-A migration creates a tasks table with these columns: id, title (string), completed (boolean, default false), created_at, updated_at.
+### UI Requirements
+Render:
+* Input bound to title
+* Add button
+* List all tasks
+* Checkbox/button to toggle completion
+Keep the UI simple.
+### Route
+Mount the Volt component at:
+php
+/tasks
 
-A Task Eloquent model (App\Models\Task) with title and completed mass-assignable.
+Example:
+php
+Volt::route('/tasks', 'tasks');
 
-A Volt component named tasks (file: resources/views/livewire/tasks.blade.php) mounted at the route /tasks, with:
+### Important
+The automated Pest tests check:
+Migration structure
+Model exists
+Volt component exists
+Route exists
+Property name is exactly:
+   $title
+ Method names are exactly:
+   addTask
+   toggle
+ Validation rule is exactly:
+   required|string|max:255
+ Tasks are created
+ Empty titles fail validation
+ Completion toggles correctly
+Do not rename anything.
+## Expected File Structure
+text
+app/
+   Models/
+     Task.php
+database/
+   migrations/
+     create_tasks_table.php
+resources/
+  views/
+      livewire/
+        tasks.blade.php
+routes/
+  web.php
 
-a public property $title (string),
-a method addTask() that validates title as required|string|max:255, creates the task, and resets $title,
-a method toggle($id) that flips that task's completed value.
-The provided Pest suite (tests/Feature/TaskListTest.php) checks all of the above. Do not edit the test file.
-
-Run the tests locally
-composer install
-cp .env.example .env
-php artisan key:generate
-# point .env at your local MySQL, then:
+## Deliverables
+Provide:
+1. Exact code for each file.
+2. Any required imports.
+3. Route registration.
+4. Commands to run:
+bash
 php artisan migrate
 php artisan test
-Green across the board = you have met the spec.
 
-Submit
-Click "Use this template" at the top of this repo to make your own copy. Keep it public.
-Build the task. Commit as you go.
-Commit your AI conversation as a file named AI-CONVERSATION.md at the repo root — paste the full conversation you had with Claude / Cursor while building this. This is required; an entry without it is incomplete.
-Push. GitHub Actions runs the test suite automatically — you'll see a green check or red X on your latest commit.
-Go back to the application form and paste your repository URL into the "Build challenge" field.
-That's it. We review your code, your test result, and how you worked with AI, all from your repo. Good luck.
+5. Verify that implementation matches all requirements before finishing.
+Generate production-quality Laravel 11 + Volt code.
 
-This challenge is deliberately small. If you're a Laravel developer, the reviewer is mainly checking:
+Show less
+11:02 AM
 
-Can you follow an exact specification?
-Can you work with Laravel 11 + Livewire 3 + Volt?
-Can you write clean code that passes tests?
-Can you use AI effectively and document the process?
-Expected files
-Migration
+Determined to deliver complete implementation files without additional tools
+Determined to deliver complete implementation files without additional tools
+Here's the complete implementation:
+
+1. Migration
 database/migrations/xxxx_xx_xx_create_tasks_table.php
-Schema::create('tasks', function (Blueprint $table) {
-    $table->id();
-    $table->string('title');
-    $table->boolean('completed')->default(false);
-    $table->timestamps();
-});
-Model
+
+php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('tasks', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->boolean('completed')->default(false);
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('tasks');
+    }
+};
+2. Model
 app/Models/Task.php
+
+php
 <?php
 
 namespace App\Models;
@@ -80,17 +174,15 @@ class Task extends Model
         'title',
         'completed',
     ];
-}
-Route
-routes/web.php
-use Livewire\Volt\Volt;
 
-Volt::route('/tasks', 'tasks');
-Volt Component
+    protected $casts = [
+        'completed' => 'boolean',
+    ];
+}
+3. Volt Component
 resources/views/livewire/tasks.blade.php
 
-Laravel Volt single-file component:
-
+php
 <?php
 
 use App\Models\Task;
@@ -116,90 +208,71 @@ new class extends Component
     public function toggle($id): void
     {
         $task = Task::findOrFail($id);
-
-        $task->update([
-            'completed' => ! $task->completed,
-        ]);
+        $task->completed = ! $task->completed;
+        $task->save();
     }
 
-    public function tasks()
+    public function with(): array
     {
-        return Task::latest()->get();
+        return [
+            'tasks' => Task::latest()->get(),
+        ];
     }
-};
-?>
+}; ?>
 
 <div>
-    <form wire:submit="addTask">
+    <h1 class="text-xl font-bold mb-4">Tasks</h1>
+
+    <form wire:submit="addTask" class="flex gap-2 mb-4">
         <input
             type="text"
             wire:model="title"
-            placeholder="Task title"
+            placeholder="New task..."
+            class="border rounded px-2 py-1 flex-1"
         >
-
-        <button type="submit">
-            Add Task
+        <button type="submit" class="bg-blue-500 text-white px-4 py-1 rounded">
+            Add
         </button>
-
-        @error('title')
-            <div>{{ $message }}</div>
-        @enderror
     </form>
 
-    <ul>
-        @foreach($this->tasks() as $task)
-            <li>
-                <label>
-                    <input
-                        type="checkbox"
-                        wire:click="toggle({{ $task->id }})"
-                        @checked($task->completed)
-                    >
+    @error('title')
+        <p class="text-red-500 text-sm mb-2">{{ $message }}</p>
+    @enderror
 
+    <ul class="space-y-2">
+        @foreach ($tasks as $task)
+            <li class="flex items-center gap-2">
+                <input
+                    type="checkbox"
+                    wire:click="toggle({{ $task->id }})"
+                    @checked($task->completed)
+                >
+                <span @class(['line-through text-gray-400' => $task->completed])>
                     {{ $task->title }}
-                </label>
+                </span>
             </li>
         @endforeach
     </ul>
 </div>
-AI-CONVERSATION.md
+4. Route
+In routes/web.php, add:
 
-Don't forget this requirement. Many candidates fail because they complete the code but forget:
+php
+use Livewire\Volt\Volt;
 
-AI-CONVERSATION.md
-
-at the repository root.
-
-Paste your full conversation with Claude/Cursor/ChatGPT while building the challenge.
-
-Time estimate
-
-For an experienced Laravel developer:
-
-Task	Time
-Migration	2 min
-Model	1 min
-Route	1 min
-Volt component	15-20 min
-Run tests & fix failures	10-15 min
-AI-CONVERSATION.md	2 min
-Commit & push	5 min
-
-Total: ~30-45 minutes.
-
-If you have not used Volt before, expect around 60-90 minutes.
-
-One thing I'd verify before submitting is whether the tests expect:
-
-public function tasks()
-
-or
-
-#[Computed]
-public function tasks()
-
-because some challenge authors write the Pest tests assuming a specific Volt pattern. Run:
-
+Volt::route('/tasks', 'tasks');
+5. Commands
+bash
+php artisan migrate
 php artisan test
+Verification against requirements
+Migration: id, title (string), completed (boolean, default false), timestamps — ✅
+Model: Eloquent model, $fillable = ['title', 'completed'] — ✅
+Public property: public string $title = ''; exact name — ✅
+addTask(): exact name, validates 'title' => 'required|string|max:255', creates via Task::create, resets title — ✅
+toggle($id): exact name, finds task, flips completed, saves — ✅
+UI: input bound to title, add button, task list, checkbox toggling completion — ✅
+Route: Volt::route('/tasks', 'tasks') matching resources/views/livewire/tasks.blade.php — ✅
+File structure: matches expected paths exactly — ✅
+One note: Volt requires the package to be installed and registered (composer require livewire/volt and php artisan volt:install if not already done), and routes/web.php must have Volt routing enabled — but since the task only requires registering the route in web.php, the snippet above is sufficient assuming Volt is already set up in the project (as your stack requirements state Volt is already part of the stack).
 
-and adjust only if the tests require it. The tests are the source of truth.
